@@ -45,7 +45,7 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LoginScreen(launcher: ActivityResultLauncher<Intent>) {
+fun LoginScreen(launcher: ActivityResultLauncher<Intent>, onLoginResult: (Boolean) -> Unit) {
     // Contexto para navegação entre atividades
     var emailInserido by remember { mutableStateOf("") }
     var senhaInserida by remember { mutableStateOf("") }
@@ -176,21 +176,20 @@ fun LoginScreen(launcher: ActivityResultLauncher<Intent>) {
             )
 
         }
-            Button(onClick = {
-                scope.launch {
-                    val administrador = administradorDao.getAdministradorPorEmail(emailInserido).firstOrNull()
-                    if (administrador != null && administrador.senha == senhaInserida) {
-                        // Redirecione para home.kt
-                        val intent = Intent().putExtra("LOGIN_SUCCESSFUL", true)
-                        launcher.launch(intent)
-                    } else {
-                        // Atualize o estado para exibir o Snackbar
-                        showSnackbar = true
-                    }
+        Button(onClick = {
+            scope.launch {
+                val administrador = administradorDao.getAdministradorPorEmail(emailInserido).firstOrNull()
+                if (administrador != null && administrador.senha == senhaInserida) {
+                    // Retorne o resultado para a MainActivity
+                    onLoginResult(true) // Chame o lambda onLoginResult com true
+                } else {
+                    // ...
+                    onLoginResult(false) // Chame o lambda onLoginResult com false
                 }
-            }) {
-                // ...
             }
+        }) {
+            // ...
+        }
 
             // Observe o estado e exiba o Snackbar quando necessário
             LaunchedEffect(showSnackbar) {
@@ -209,9 +208,6 @@ fun LoginScreen(launcher: ActivityResultLauncher<Intent>) {
 @Preview(showBackground = true)
 @Composable
 fun LoginScreenPreview() {
-
     val launcher = rememberLauncherForActivityResult(contract = ActivityResultContracts.StartActivityForResult()) {}
-    LoginScreen(launcher)
-
-
+    LoginScreen(launcher) { /* Faça algo com o resultado do login aqui, se necessário */ }
 }
